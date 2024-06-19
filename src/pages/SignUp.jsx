@@ -2,6 +2,11 @@ import React, { useState } from 'react'
 import Oauth from '../components/Oauth';
 import { Link } from 'react-router-dom';
 import { FaEyeSlash,FaEye  } from "react-icons/fa";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { db } from '../firebase';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 function SignUp() {
   const [showPassword, setShowPassword] = useState(false)
@@ -11,11 +16,37 @@ function SignUp() {
     password:"",
   });
   const {name, email, password} = formData;
+  const navigate = useNavigate();
   function onChange(e){
     setFormData((prevState)=>({
       ...prevState,
       [e.target.id]: e.target.value,
     }));
+
+  }
+  async function onSubmit(e){
+    e.preventDefault();
+    try {
+      const auth = getAuth();
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      updateProfile(auth.currentUser,{
+        displayName: name
+
+      })
+      const user = userCredential.user
+      const fromDataCopy = {...formData}
+      delete fromDataCopy.password
+      fromDataCopy.timestamp = serverTimestamp();
+
+      await setDoc(doc(db, "users", user.uid), fromDataCopy)
+      navigate("/");
+      toast.success("Sign up was successful")
+      
+    } catch (error) {
+      console.log(error);
+      toast.error("something went wrong with the registration")
+      
+    }
 
   }
   return (
@@ -26,7 +57,7 @@ function SignUp() {
         <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="key" className='w-full rounded-2xl' />
       </div>
       <div className='w-full md:w-67% lg:w-[40%] lg:ml-20'>
-        <form>
+        <form onSubmit={onSubmit}>
           <input  
           type="text" 
           id='name' 
