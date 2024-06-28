@@ -160,7 +160,9 @@ function CreateListing() {
                 imgUrls,
                 geolocation,
                 timestamp: serverTimestamp(),
+                userRef: auth.currentUser.uid,
             };
+            
             delete formDataCopy.images;
              !formDataCopy.offer && delete formDataCopy.discountedPrice;
              delete formDataCopy.latitude;
