@@ -3,13 +3,15 @@ import { useParams } from 'react-router';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import Spinner from '../components/Spinner';
-import {Swiper, SwiperSlide, SwiperSlider} from 'swiper/react';
-import    {EffectFade, Autoplay, Navigation, Pagination, Scrollbar} from 'swiper/modules'
+import {Swiper, SwiperSlide} from 'swiper/react';
+import    {EffectFade, Autoplay, Navigation, Pagination} from 'swiper/modules'
 import { FaShare, FaBed, FaBath, FaParking, FaChair } from "react-icons/fa";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import "swiper/css/bundle"
 import {getAuth} from "firebase/auth"
 import Contact from '../components/Contact';
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
+
 function Listing() {
     const auth = getAuth()
     const params = useParams()
@@ -126,7 +128,21 @@ function Listing() {
 
                
             </div>
-            <div className='bg-blue-300  w-full h-[200px] lg-[400px]'></div>
+            <div className='w-full h-[200px] md:h-[400px] z-10 overflow-x-hidden mt-6 md:mt-0 md:ml-3'>
+            <MapContainer 
+            center={[listing.geolocation.lat, listing.geolocation.lng]} zoom={13} scrollWheelZoom={false} style={{height:"100%", width:"100%"}}>
+    <TileLayer
+      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    />
+    <Marker position={[listing.geolocation.lat, listing.geolocation.lng]}>
+      <Popup>
+        A pretty CSS3 popup. <br /> Easily customizable.
+      </Popup>
+    </Marker>
+  </MapContainer>
+
+            </div>
         </div>
     </main>
   )
