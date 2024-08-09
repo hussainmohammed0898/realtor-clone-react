@@ -4,21 +4,23 @@ import {toast} from 'react-toastify'
 import { db } from '../firebase';
 import Spinner from '../components/Spinner';
 import ListingItem from '../components/ListingItem';
+import { useParams } from 'react-router';
 
 
-function Offers() {
+function Category() {
   const [listings, setListings] = useState(null)
   const [loading, setLoading] = useState(true);
   const [lastFetchedListing, setLastFetching] = useState(null);
+  const params = useParams()
   useEffect(()=>{
     async function fetchListings(){
       try {
         const listingRef = collection(db, 'listings')
-        const q = query(listingRef, where("offer", '==', true),orderBy("timestamp","desc"), limit(8));
+        const q = query(listingRef, where("type", '==', params.categoryName),orderBy("timestamp","desc"), limit(8));
         const querySnap = await getDocs(q);
         const lastVisible = querySnap.docs[querySnap.docs.length -1];
         setLastFetching(lastVisible);
-        const listings = [];
+        const listings = []
         querySnap.forEach((doc)=>{
           return listings.push({
             id: doc.id,
@@ -35,12 +37,12 @@ function Offers() {
     }
     fetchListings();
 
-  },[]);
+  },[params.categoryName]);
 
   async function onFetchMoreListings(){
     try {
       const listingRef = collection(db, 'listings')
-      const q = query(listingRef, where("offer", '==', true),orderBy("timestamp","desc"), startAfter(lastFetchedListing), limit(4));
+      const q = query(listingRef, where("type", '==', params.categoryName),orderBy("timestamp","desc"), startAfter(lastFetchedListing), limit(4));
       const querySnap = await getDocs(q);
       const lastVisible = querySnap.docs[querySnap.docs.length -1];
       setLastFetching(lastVisible);
@@ -48,7 +50,7 @@ function Offers() {
       querySnap.forEach((doc)=>{
         return listings.push({
           id: doc.id,
-          data: doc.data(),
+          data: doc.data()
         });
       });
       setListings((prevState)=>[
@@ -65,7 +67,7 @@ function Offers() {
   return (
     <div className='max-w-6xl mx-auto px-3'>
       <h1 className='text-3xl text-center mt-6 font-bold mb-6'>
-        Offers
+        {params.categoryName === "rent" ? "Places for rent" : "places for sale"}
       </h1>
       {loading ?(
         <Spinner/>
@@ -84,16 +86,21 @@ function Offers() {
         </main>
         {lastFetchedListing &&(
           <div className='flex justify-center items-center'>
-            <button onClick={onFetchMoreListings} className='bg-white px-3 py-1.5 text-gray-700 border border-gray-300 mb-6 mt-6 hover:border-slate-600 rounded transition duration-150 ease-in-out'>Load more</button>
+            <button onClick={onFetchMoreListings} 
+            className='bg-white px-3 py-1.5 text-gray-700 border border-gray-300 mb-6 mt-6 hover:border-slate-600 rounded transition duration-150 ease-in-out'>Load more</button>
           </div>
         )}
         </>
 
       ):(
-        <p> There are no current offers</p>
+        <p> There are no current {" "}
+        {params.categoryName === "rent"
+            ? "places for rent"
+            : "places for sale"}
+            </p>
       )}
     </div>
-  )
+  );
 }
 
-export default Offers
+export default Category
